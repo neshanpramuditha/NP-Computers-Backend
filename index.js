@@ -1,0 +1,34 @@
+
+import express, { request } from 'express'
+import mongoose from 'mongoose'
+import userRouter from './router/useRouter.js'
+import productRouter from './router/productRouter.js'
+import authorizedUser from './lib/jwtMiddleware.js'
+
+
+const mongoURI = "mongodb+srv://admin:1234@i-computers.9kitlsi.mongodb.net/?appName=i-computers"
+mongoose.connect(mongoURI).then( // mongoose.connect(mongoURI) - is a promise
+    ()=>{
+        console.log("MongoDB is connected...") //if the promise is correct, it is run
+    }
+) .catch( 
+    ()=>{
+        console.log("Error connecting to MongoDB!") //if the promise is wrong, it is run
+    }
+)
+
+const app = express()
+app.use(express.json()) //middleware to parse json data
+app.use(authorizedUser)
+
+app.use("/users",userRouter)
+app.use("/products", productRouter)
+
+
+function started(){
+    console.log("Server Started.....")
+}
+
+app.listen(3000,started)
+//It's can also type like this - Using arrow functions
+//app.listen(3000, ()=>{console.log("Server Started.....")})
