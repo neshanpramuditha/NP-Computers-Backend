@@ -5,8 +5,12 @@ import userRouter from './router/useRouter.js'
 import productRouter from './router/productRouter.js'
 import authorizedUser from './lib/jwtMiddleware.js'
 
+import cors from 'cors'
 
-const mongoURI = "mongodb+srv://admin:1234@i-computers.9kitlsi.mongodb.net/?appName=i-computers"
+import dotenv from 'dotenv'
+dotenv.config()
+
+const mongoURI = process.env.MONGO_URI
 mongoose.connect(mongoURI).then( // mongoose.connect(mongoURI) - is a promise
     ()=>{
         console.log("MongoDB is connected...") //if the promise is correct, it is run
@@ -18,6 +22,7 @@ mongoose.connect(mongoURI).then( // mongoose.connect(mongoURI) - is a promise
 )
 
 const app = express()
+app.use(cors()) //middleware to allow cross-origin requests
 app.use(express.json()) //middleware to parse json data
 app.use(authorizedUser)
 
