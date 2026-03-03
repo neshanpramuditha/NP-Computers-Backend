@@ -31,7 +31,7 @@ export function loginUser(req, res) {
 	})
 		.then((user) => {
 			if (user == null) {
-				res.json({
+				res.status(404).json({
 					message: "User with given email not found",
 				});
 			} else {
@@ -51,16 +51,19 @@ export function loginUser(req, res) {
 							image: user.image,
 							isEmailVerified: user.isEmailVerified,
 						},
-						process.env.JWT_SECRET // "i-computers-54!" - Signature(Key)
+						process.env.JWT_SECRET, // "i-computers-54!" - Signature(Key)
+						{expiresIn: req.body.rememberme ? "30d" : "48h"} // Token expiration time set - if tick remember me, token expires in 30 days, otherwise in 48 hours
+						
 					);
 
-					console.log(token)
+					// console.log(token) - Don't print the token in the console for security reasons
 
 
 
 					res.json({
 						message: "Login successfull",
 						token: token,
+						role: user.role,
 					});
 
 				} else {

@@ -26,8 +26,8 @@ app.use(cors()) //middleware to allow cross-origin requests
 app.use(express.json()) //middleware to parse json data
 app.use(authorizedUser)
 
-app.use("/users",userRouter)
-app.use("/products", productRouter)
+app.use("/api/users",userRouter)
+app.use("/api/products",productRouter)
 
 
 function started(){
