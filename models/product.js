@@ -2,18 +2,19 @@ import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema(
     {
-        productID : {
-            type:String,
-            required:true,
-            unique:true
+    productID : {
+        type:String,
+        required:true,
+        unique:true
         },
-        name : {
-            type:String,
-            required:true
+    name : {
+        type:String,
+        required:true
     },
     description : {
         type:String,
-        required:true
+        required:false,
+        default:""
     },
     altNames:{ // නම් ගොඩක් තියෙන්න පුලුවන් නිසා මේක array එකක් කරා
         type:[String],
@@ -23,7 +24,7 @@ const productSchema = new mongoose.Schema(
         type:Number,
         required:true
     },
-    labledPrice:{ // ලේබල් එකේ තියෙන price එක
+    labelledPrice:{ // ලේබල් එකේ තියෙන price එක
         type:Number,
     },
     category:{
@@ -46,6 +47,10 @@ const productSchema = new mongoose.Schema(
     model:{
         type:String,
         default:"Standard"
+    },
+    qty:{
+        type : Number,
+        default : 100
     }
 }
 )

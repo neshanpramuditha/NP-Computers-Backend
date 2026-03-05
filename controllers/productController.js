@@ -9,18 +9,18 @@ export async function createProduct(req, res) {
 
 	try {
 		const existingProduct = await Product.findOne({
-			productId: req.body.productId,
+			productID: req.body.productID,
 		});
 
 		if (existingProduct) {
 			res
 				.status(400)
-				.json({ message: "Product with given productId already exists" });
+				.json({ message: "Product with given productID already exists" });
 			return;
 		}
 
 		const data = {};
-		data.productId = req.body.productId;
+		data.productID = req.body.productID;
 
 		if (req.body.name == null) {
 			res.status(400).json({ message: "Product name is required" });
@@ -52,12 +52,17 @@ export async function createProduct(req, res) {
 		res
 			.status(201)
 			.json({ message: "Product created successfully", product: newProduct });
-	} catch (error) {
-		res.status(500).json({ message: "Error creating product", error: error });
-	}
+	 } 	//catch (error) {
+	// 	res.status(500).json({ message: "Error creating product", error: error });
+	// }
+	catch (error) {
+		console.error(error);
+		res.status(500).json({ message: error.message, error: error });
+}
 }
 
 export async function getProducts(req, res) {
+	
 	try {
 		if (isAdmin(req)) {
 			const products = await Product.find();
@@ -77,9 +82,9 @@ export async function deleteProduct(req, res) {
 		return;
 	}
 	try {
-		const productId = req.params.productId;
+		const productID = req.params.productID;
 
-		await Product.deleteOne({ productId: productId });
+		await Product.deleteOne({ productID: productID });
 
 		res.status(200).json({ message: "Product deleted successfully" });
 	} catch (error) {
@@ -94,7 +99,7 @@ export async function updateProduct(req, res) {
 	}
 
 	try {
-		const productId = req.params.productId;
+		const productID = req.params.productID;
 
 		const data = {};
 
@@ -121,7 +126,7 @@ export async function updateProduct(req, res) {
 		data.brand = req.body.brand || "Generic";
 		data.model = req.body.model || "Standard";
 
-		await Product.updateOne({ productId: productId }, data);
+		await Product.updateOne({ productID: productID }, data);
 
 		res
 			.status(201)
@@ -134,8 +139,8 @@ export async function updateProduct(req, res) {
 export async function getProductById(req , res){
     try{
 
-        const productId = req.params.productId;
-        const product = await Product.findOne({productId: productId});
+        const productID = req.params.productID;
+        const product = await Product.findOne({productID: productID});
 
         if(product == null){
             res.status(404).json({message : "Product not found"});

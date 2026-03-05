@@ -8,7 +8,7 @@ productRouter.get("/", getProducts); //Retrive--------------------------------|
 productRouter.get("/trending", (req,res)=>{//                                 |
     res.status(200).json({message:"This is trending products endpoint"})//----|---->CRUD
 })//--------------------------------------------------------------------------|
-|productRouter.put("/:productId", updateProduct); //Update--------------------|
-productRouter.delete("/:productId", deleteProduct); //Delete------------------|
-productRouter.get("/:productId",getProductById); 
+|productRouter.put("/:productID", updateProduct); //Update--------------------|
+productRouter.delete("/:productID", deleteProduct); //Delete------------------|
+productRouter.get("/:productID",getProductById); 
 export default productRouter;
