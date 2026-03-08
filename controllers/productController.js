@@ -137,7 +137,8 @@ export async function updateProduct(req, res) {
 }
 
 export async function getProductById(req , res){
-    try{
+    
+	try{
 
         const productID = req.params.productID;
         const product = await Product.findOne({productID: productID});
