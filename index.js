@@ -8,6 +8,7 @@ import authorizedUser from './lib/jwtMiddleware.js'
 import cors from 'cors'
 
 import dotenv from 'dotenv'
+import orderRouter from './router/orderRouter.js'
 dotenv.config()
 
 const mongoURI = process.env.MONGO_URI
@@ -28,6 +29,7 @@ app.use(authorizedUser)
 
 app.use("/api/users",userRouter)
 app.use("/api/products",productRouter)
+app.use("/api/orders",orderRouter) 
 
 
 function started(){
