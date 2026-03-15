@@ -126,9 +126,42 @@ export async function getOrders(req,res) {
         res.status(401).json({message: "Unauthorized. please log in to view your orders"})
         return
     }
+    // For pagination process
+    const pageSizeString = req.params.pageSize || "10"
+    const pageNumberInString = req.params.pageNumber || "1"
 
-    if(isAdmin(req)){
-        
+    const pageSize = parseInt(pageSizeString)
+    const pageNumber = parseInt(pageNumberInString)
+
+        try{
+            if(isAdmin(req)){
+                const numberOfOrders = await Order.countDocuments()
+                const numberOfPages = Math.ceil(numberOfOrders / pageSize)
+
+                // Sort latest orders first ".sort({date: -1})" | If the requested page is 3, It will skip other pages ".skip((pageNumber - 1) * pageSize).limit(pageSize)"
+                const orders = await Order.find().sort({date: -1}).skip((pageNumber - 1) * pageSize).limit(pageSize)
+            
+                res.json({
+                    orders: orders,
+                    totalPages : numberOfPages
+                })
+            }
+            else{
+                const numberOfOrders = await Order.countDocuments()
+                const numberOfPages = Math.ceil(numberOfOrders / pageSize)
+
+                const orders = await Order.find({email:req.user.email}).sort({date: -1}).skip((pageNumber - 1) * pageSize).limit(pageSize)
+            
+                res.json({
+                    orders: orders,
+                    totalPages : numberOfPages
+                })     
+            }
+        }
+    
+        catch(error){
+            console.log("Eror fetchingn orders", error)
+            res.status(500).json({message:"Error fetching orders", error:error})
+        }
     }
     
-}
