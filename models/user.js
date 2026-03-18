@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
 
     image:{
         type:String,
-        default:"/images", //true or false value
+        default:"/images/default-profile.png", //true or false value
         required:true
     }
 })

@@ -80,6 +80,24 @@ export function loginUser(req, res) {
 		});
 }
 
+export function getUsers(req,res){
+	if(req.user == null){
+		res.status(401).json({message: "Unauthoized!"})
+		return
+	}
+
+	res.json(
+		{
+			email:req.user.email,
+			firstName:req.user.firstName,
+			lastName:req.user.lastName,
+			role:req.user.role,
+			image:req.user.image,
+			isEmailVerified:req.user.isEmailVerified
+		}
+	)
+} 
+
 export function isAdmin(req){
 	if (req.user == null){
 		return false;
