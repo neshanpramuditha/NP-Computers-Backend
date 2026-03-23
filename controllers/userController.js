@@ -98,6 +98,53 @@ export function getUsers(req,res){
 	)
 } 
 
+export async function updateUserProfile(req, res) {
+	if(req.user == null){
+		res.status(401).json({message:"Unauthorized"})
+	return
+	}
+
+	try{
+		await User.updateOne({email:req.user.email}, {firstName:req.body.firstName, lastName:req.body.lastName, image:req.body.image})
+		
+		const user = await User.findOne({email:req.user.email})
+		const token = jwt.sign(
+						{
+							email: user.email,
+							firstName: user.firstName,
+							lastName: user.lastName,
+							role: user.role,
+							image: user.image,
+							isEmailVerified: user.isEmailVerified,
+						},
+						process.env.JWT_SECRET, // "i-computers-54!" - Signature(Key)
+						{expiresIn: req.body.rememberme ? "30d" : "48h"} // Token expiration time set - if tick remember me, token expires in 30 days, otherwise in 48 hours
+						
+					);
+		res.json({message:"Profile updated successfully", token:token})
+	}
+	catch(error){
+		res.status(500).json({message:"Error updating profile", error:error})
+	}
+}
+
+export async function changeUserPassword(req, res){
+	if(req.user == null){
+		res.status(401).json({message:"Unauthorized"})
+	return
+	}
+	
+	try{
+		const hashedPassword = bcrypt.hashSync(req.body.password, 10)
+
+		await User.updateOne({email:req.user.email}, {password:hashedPassword})
+		res.json({message:"Password changed successfully"})
+	}
+	catch(error){
+		res.status(500).json({message:"Error changing password", error:error})
+	}
+}
+
 export function isAdmin(req){
 	if (req.user == null){
 		return false;
