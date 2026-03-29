@@ -3,7 +3,22 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import dotenv from 'dotenv'
+import OTP from "../models/otp.js";
+
+import nodemailer from 'nodemailer'
+import axios from "axios";
 dotenv.config()
+
+const transporter = nodemailer.createTransport({
+	service:"gmail",
+	host:"smtp.gmail.com",
+	port:587,
+	secure:false,
+	auth:{
+		user:"dpremarathna180@gmail.com",
+		pass:process.env.GMAIL_APP_PASSWORD
+	}
+})
 
 export function createUser(req, res) {
 	const hashedPassword = bcrypt.hashSync(req.body.password, 10);
@@ -154,5 +169,141 @@ export function isAdmin(req){
 	}
 	else{
 		return false;
+	}
+}
+
+export async function sendOTP(req, res){
+	try{
+		const user = await User.findOne({email:req.body.email})
+
+		if(user == null){
+			res.status(404).json({message:"user with given email not found"})
+			return
+		}
+		// Create a randowm number between 100000 and 999999
+		const otp = Math.floor(100000 + Math.random() * 900000)
+		
+		// Delete any existing OTP for the email before creating a new one
+		await OTP.deleteMany({email:req.body.email})
+
+		const newOTP = new OTP({
+			email:req.body.email,
+			otp:otp
+		})
+
+		await newOTP.save()
+
+		const message = {
+			from:"dpremarathna180@gmail.com",
+			to:req.body.email,
+			subject:"Your OTP for Password Reset",
+			text: "Your OTP for password reset is "+otp+", is valid for 10 minutes"
+		}
+		transporter.sendMail(message, (error, info)=>{
+			if(error){
+				console.log("Error sending email: ", error)	
+				res.status(500).json({message:"Error sending OTP", error:error})
+			}
+			else{
+				console.log("Email sent: ", info.response)
+				res.json({message:"OTP sent successfully to " + req.body.email})
+			}
+		})
+		
+	}
+	catch(error){
+		res.status(505).json({message:"Error sending OTP", error:error})
+	}
+
+}
+
+export async function verifyOTP(req, res){
+	try{
+		const otpCode =req.body.otp
+		const email = req.body.email
+		const newPassword = req.body.newPassword
+	
+		const otpRecord = await OTP.findOne({email:email})
+
+		if(otpRecord == null){
+			res.status(404).json({message:"OTP not found for the given email"})
+			return
+		}
+		if (otpRecord.otp != otpCode){
+			res.status(400).json({message:"Invalid OTP"})
+			return
+		}
+
+		const hashedPassword = bcrypt.hashSync(newPassword, 10)
+		await User.updateOne({email:email}, {password:hashedPassword})
+		await OTP.deleteOne({email:email})
+
+		res.json({message:"Password reset successfully"})
+	}
+	catch(error){
+		res.status(500).json({message:"Error verifying OTP", error:error})
+	}
+}
+
+export async function googleLogin(req, res) {
+	try{
+		const googleResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+			headers:{
+				Authorization:"Bearer "+req.body.token
+			}
+		})
+
+		const user = await User.findOne({email:googleResponse.data.email})
+
+		if(user == null){
+			const newUser = new User({
+				email: googleResponse.data.email,
+				firstName: googleResponse.data.given_name,
+				lastName: googleResponse.data.family_name,
+				password: "google-login",
+				image: googleResponse.data.picture,
+				isEmailVerified: true
+			})
+			await newUser.save()
+
+			const token = jwt.sign(
+				{
+					email: newUser.email,
+					firstName: newUser.firstName,
+					lastName: newUser.lastName,
+					role: newUser.role,
+					image: newUser.image,
+					isEmailVerified: newUser.isEmailVerified,
+				},
+				process.env.JWT_SECRET,
+				// {expiresIn:req.body.rememberme ? "30d" : "48h"}
+			)
+			res.json({
+				message:"Login successfull",
+				token:token,
+				role:newUser.role
+			})
+		}
+		else{
+			const token = jwt.sign({
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				role: user.role,
+				image: user.image,
+				isEmailVerified:user.isEmailVerified
+			},
+			process.env.JWT_SECRET,
+			// {expiresIn:req.body.rememberme ? "30d" : "48h"}
+		)
+		res.json({
+			message:"Login successfull",
+			token:token,
+			role:user.role
+		})
+		}
+	}
+	catch(error){
+		res.status(500).json({message:"Error logging in with Google", error:error})
 	}
 }
