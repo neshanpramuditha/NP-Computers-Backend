@@ -161,6 +161,25 @@ export async function getProductById(req , res){
     }
 }
 
+// Search query
 export async function searchProducts(req , res){
-	
+	const query = req.params?.query||"";
+
+	try{
+		const products = await Product.find({
+			// $or means search for the query in either the name or description field, $regex means search for the query in the name field, $options: "i" means case insensitive search
+			// $regex means search for the query in the name field, $options: "i" means case insensitive search
+			// $elemMatch is used to search for the query in the altNames array
+			$or: [
+				{name: { $regex: query, $options: "i" }},
+				{description: { $regex: query, $options: "i" }},
+				{altNames: {$elemMatch: { $regex: query, $options: "i" }}}
+			],
+			isVisible:true
+		})
+		res.status(200).json(products);
+	}
+	catch(error){
+		res.status(500).json({message : "Error searching products" , error : error});
+	}
 }
